@@ -1,0 +1,36 @@
+# systemd unit for the API server.
+# Install to /etc/systemd/system/api.honoryourcommitments.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now api.honoryourcommitments
+#   sudo journalctl -u api.honoryourcommitments -f
+
+[Unit]
+Description=Portugal Must Honor Its Commitments — API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+# Create a dedicated, unprivileged user: sudo adduser --system --group phyc
+User=phyc
+Group=phyc
+WorkingDirectory=/opt/api.honoryourcommitments.com
+# .env is read by the app (dotenv). Keep it chmod 600, owned by phyc.
+EnvironmentFile=/opt/api.honoryourcommitments.com/.env
+ExecStart=/usr/bin/node src/server.js
+Restart=on-failure
+RestartSec=3
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/api.honoryourcommitments.com
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target
