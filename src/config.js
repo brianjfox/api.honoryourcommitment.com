@@ -16,6 +16,35 @@ function required(name, devFallback) {
 const bool = (v, def = false) =>
   v === undefined ? def : ['1', 'true', 'yes', 'on'].includes(String(v).toLowerCase())
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(
+  /\/$/,
+  ''
+)
+
+// Allowed CORS origins: the configured frontend URL plus its apex/www sibling
+// (the site canonicalizes to the apex, but allow both so a www-vs-apex mismatch
+// can't block the browser). Add more with CORS_EXTRA_ORIGINS (comma-separated).
+function corsOrigins(url) {
+  const out = new Set([url])
+  try {
+    const u = new URL(url)
+    const port = u.port ? `:${u.port}` : ''
+    const sibling = u.hostname.startsWith('www.')
+      ? u.hostname.slice(4)
+      : `www.${u.hostname}`
+    out.add(`${u.protocol}//${sibling}${port}`)
+  } catch {
+    /* non-URL value (e.g. dev default) — leave as-is */
+  }
+  for (const o of (process.env.CORS_EXTRA_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)) {
+    out.add(o)
+  }
+  return [...out]
+}
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -25,7 +54,8 @@ export const config = {
 
   databaseUrl: required('DATABASE_URL', 'postgres://phyc:phyc@localhost:5432/phyc'),
 
-  frontendUrl: (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''),
+  frontendUrl: FRONTEND_URL,
+  frontendOrigins: corsOrigins(FRONTEND_URL),
   apiPublicUrl: (process.env.API_PUBLIC_URL || 'http://localhost:3000').replace(/\/$/, ''),
 
   privacyPolicyVersion: process.env.PRIVACY_POLICY_VERSION || 'unversioned',

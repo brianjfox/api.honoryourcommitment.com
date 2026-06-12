@@ -28,7 +28,7 @@ export async function buildServer() {
   await app.register(helmet, { contentSecurityPolicy: false })
 
   await app.register(cors, {
-    origin: config.frontendUrl,
+    origin: config.frontendOrigins,
     methods: ['GET', 'POST'],
     credentials: false,
   })
