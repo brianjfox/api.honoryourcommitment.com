@@ -1,0 +1,21 @@
+# Daily news curation (oneshot, driven by fetch-news.timer).
+# Install to /etc/systemd/system/fetch-news.service
+[Unit]
+Description=Portugal Must Honor Its Commitments — daily news curation
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=phyc
+Group=phyc
+WorkingDirectory=/opt/api.honoryourcommitment.com
+EnvironmentFile=/opt/api.honoryourcommitment.com/.env
+ExecStart=/usr/bin/node scripts/fetch-news.js
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/api.honoryourcommitment.com
+TimeoutStartSec=600

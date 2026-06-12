@@ -9,6 +9,8 @@ import casesRoute from './routes/cases.js'
 import claimantsRoute from './routes/claimants.js'
 import confirmRoute from './routes/confirm.js'
 import statsRoute from './routes/stats.js'
+import newsRoute from './routes/news.js'
+import pressRoute from './routes/press.js'
 
 export async function buildServer() {
   const app = Fastify({
@@ -55,6 +57,8 @@ export async function buildServer() {
   await app.register(claimantsRoute)
   await app.register(confirmRoute)
   await app.register(statsRoute)
+  await app.register(newsRoute)
+  await app.register(pressRoute)
 
   // Don't leak internals on unexpected errors.
   app.setErrorHandler((err, req, reply) => {

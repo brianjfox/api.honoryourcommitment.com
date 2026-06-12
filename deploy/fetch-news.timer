@@ -1,0 +1,13 @@
+# Runs the daily news curation once a day (with catch-up if the box was off).
+# Install to /etc/systemd/system/fetch-news.timer, then:
+#   sudo systemctl enable --now fetch-news.timer
+[Unit]
+Description=Run daily news curation for honoryourcommitment.com
+
+[Timer]
+OnCalendar=*-*-* 06:30:00
+Persistent=true
+RandomizedDelaySec=900
+
+[Install]
+WantedBy=timers.target

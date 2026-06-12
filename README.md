@@ -22,6 +22,8 @@ Browser (SPA)  →  Nginx (TLS)  →  /api/*  →  Fastify (127.0.0.1:3000)  →
 | POST   | `/api/claimants`   | Join the legal action                              |
 | GET    | `/api/confirm`     | Double opt-in confirmation (from the email link)   |
 | GET    | `/api/stats`       | Aggregated public counters (confirmed records only)|
+| GET    | `/api/news`        | Latest daily-curated news coverage (newest batch)  |
+| GET    | `/api/press-releases` | First-party press releases (newest first)       |
 | GET    | `/api/health`      | Liveness + DB check                                |
 
 ### Request contract (POST endpoints)
@@ -97,6 +99,46 @@ token as `turnstileToken`, plus the hidden `botcheck` honeypot field. The
 `/api/stats` response is shaped to match the frontend's existing data
 (`signatures`, `cases`, `countries`, `combinedYears`, `capitalInvested`, plus
 `capitalByCountry` / `pendingByYear` / `investmentByRoute` for the dashboard).
+
+## Daily news curation
+
+`scripts/fetch-news.js` uses **Claude + the server-side web-search tool** to find
+3–4 recent, credible articles about Portugal's residency/Golden Visa delays and
+related policy changes, then has the model return them via a `submit_articles`
+tool. URLs come from real search results (not the model's memory), so links are
+genuine. Results are validated (real http(s) URL, deduped, capped) and written
+as a new batch in `news_articles`; `GET /api/news` serves the newest batch. The
+frontend Media Center renders it, falling back to its static list if empty.
+
+- **Enable**: set `ANTHROPIC_API_KEY` in `.env` (blank = the script no-ops).
+- **Model**: `ANTHROPIC_MODEL` (default `claude-opus-4-8`; set a cheaper model
+  like `claude-haiku-4-5` to reduce cost).
+- **Schedule**: `deploy/fetch-news.timer` runs it daily (~06:30, with catch-up).
+  Run once manually with `npm run fetch-news` or `sudo systemctl start fetch-news`.
+- **Safety**: a failed or empty run leaves the previous batch in place, so the
+  section never goes blank. Only valid, deduped articles are stored.
+- **Cost** (rough): web search bills per search plus tokens; a daily Opus run is
+  on the order of a few US cents to ~$0.20/day. Switch `ANTHROPIC_MODEL` down to
+  trim it.
+
+## Press releases (first-party)
+
+Press releases are **your own statements**, not AI-generated. They're stored in
+the `press_releases` table and served by `GET /api/press-releases`. The frontend
+hides the whole section when there are none.
+
+Add one from the command line (run in the API directory, on the server or
+locally with `DATABASE_URL` set):
+
+```bash
+npm run add-press-release -- '{"title":"...","summary":"...","date":"2026-06-12","url":"https://..."}'
+# or from a file:
+npm run add-press-release -- ./release.json
+```
+
+Fields: `title` and `summary` are required; `url`, `body`, `date` (YYYY-MM-DD,
+defaults to today), and `published` (default true) are optional. Set
+`published:false` to stage a draft that the API won't serve yet.
 
 ## Email & Turnstile
 

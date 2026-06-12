@@ -54,6 +54,16 @@ export const config = {
     submitMax: parseInt(process.env.RATE_LIMIT_SUBMIT_MAX || '5', 10),
     submitWindow: process.env.RATE_LIMIT_SUBMIT_WINDOW || '10 minutes',
   },
+
+  // Daily news curation (scripts/fetch-news.js, run by a systemd timer).
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    model: process.env.ANTHROPIC_MODEL || 'claude-opus-4-8',
+  },
+  news: {
+    count: parseInt(process.env.NEWS_COUNT || '4', 10),
+    lookbackDays: parseInt(process.env.NEWS_LOOKBACK_DAYS || '21', 10),
+  },
 }
 
 // Helpful warnings when running with insecure defaults outside production.
