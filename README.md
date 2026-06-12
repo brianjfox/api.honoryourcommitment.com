@@ -1,4 +1,4 @@
-# api.honoryourcommitments.com
+# api.honoryourcommitment.com
 
 API server for the **Portugal Must Honor Its Commitments** campaign. Handles
 petition signatures, case registration, and legal-claimant registration, plus
@@ -6,10 +6,6 @@ the public statistics that feed the site's live counters.
 
 Built with **Fastify + Postgres** (Node 20+, ESM). Designed to run on the same
 EU VPS as the frontend, behind Nginx, with Postgres bound to localhost.
-
-> Note: the frontend directory is `www.honoryourcommitment.com` (singular)
-> while this API is `api.honoryourcommitments.com` (plural). Confirm which
-> spelling is correct for your domain and align them.
 
 ## Architecture
 
@@ -81,16 +77,16 @@ instead of being sent — open it to confirm a test submission.
 1. **Provision** an EU VPS (Hetzner recommended), install Node 20+, Postgres,
    and Nginx.
 2. **Database**: create a role + database; keep Postgres bound to `localhost`.
-3. **Deploy** this directory to `/opt/api.honoryourcommitments.com`, run
+3. **Deploy** this directory to `/opt/api.honoryourcommitment.com`, run
    `npm ci --omit=dev` and `npm run migrate`.
 4. **Configure** `.env` (chmod 600): set `NODE_ENV=production`, a real
    `DATABASE_URL`, a long random `IP_HASH_SALT` (`openssl rand -hex 32`),
    `FRONTEND_URL`, `API_PUBLIC_URL`, the Turnstile secret, and SMTP creds.
    Set `DISABLE_TURNSTILE=false` and `DISABLE_EMAIL=false`.
-5. **Service**: install `deploy/api.honoryourcommitments.service`,
-   `systemctl enable --now api.honoryourcommitments`.
+5. **Service**: install `deploy/api.honoryourcommitment.service`,
+   `systemctl enable --now api.honoryourcommitment`.
 6. **Proxy + TLS**: install `deploy/nginx.conf`, then
-   `certbot --nginx -d api.honoryourcommitments.com`.
+   `certbot --nginx -d api.honoryourcommitment.com`.
 
 ## Connecting the frontend
 

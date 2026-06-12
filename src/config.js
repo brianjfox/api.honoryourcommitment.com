@@ -45,7 +45,7 @@ export const config = {
     pass: process.env.SMTP_PASS || '',
     from:
       process.env.EMAIL_FROM ||
-      'Honor Your Commitment <no-reply@honoryourcommitments.com>',
+      'Honor Your Commitment <no-reply@honoryourcommitment.com>',
   },
 
   rateLimit: {

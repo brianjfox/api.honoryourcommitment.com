@@ -47,7 +47,7 @@ export async function buildServer() {
 
   app.get('/api/health', async () => {
     await pool.query('SELECT 1')
-    return { ok: true, service: 'api.honoryourcommitments.com' }
+    return { ok: true, service: 'api.honoryourcommitment.com' }
   })
 
   await app.register(signaturesRoute)
