@@ -14,7 +14,8 @@
     "smoke": "node scripts/smoke.js",
     "fetch-news": "node scripts/fetch-news.js",
     "add-press-release": "node scripts/add-press-release.js",
-    "test-email": "node scripts/test-email.js"
+    "test-email": "node scripts/test-email.js",
+    "resend-confirmations": "node scripts/resend-confirmations.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",
