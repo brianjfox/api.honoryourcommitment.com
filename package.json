@@ -13,7 +13,8 @@
     "migrate": "node migrations/run.js",
     "smoke": "node scripts/smoke.js",
     "fetch-news": "node scripts/fetch-news.js",
-    "add-press-release": "node scripts/add-press-release.js"
+    "add-press-release": "node scripts/add-press-release.js",
+    "test-email": "node scripts/test-email.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

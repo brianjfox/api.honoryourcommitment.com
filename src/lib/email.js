@@ -1,21 +1,42 @@
 import nodemailer from 'nodemailer'
 import { config } from '../config.js'
 
+// Build an SMTP transport from config. Works with any provider (Scaleway TEM,
+// Mailjet, Brevo, etc.) — they all expose standard SMTP credentials.
+function makeTransport() {
+  if (!config.email.host) throw new Error('SMTP_HOST is not configured')
+  return nodemailer.createTransport({
+    host: config.email.host,
+    port: config.email.port,
+    secure: config.email.secure, // true for 465, false for 587 (STARTTLS)
+    auth:
+      config.email.user || config.email.pass
+        ? { user: config.email.user, pass: config.email.pass }
+        : undefined,
+  })
+}
+
 let transporter = null
 function getTransporter() {
   if (config.email.disabled) return null
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: config.email.host,
-      port: config.email.port,
-      secure: config.email.secure, // true for 465, false for 587 (STARTTLS)
-      auth:
-        config.email.user || config.email.pass
-          ? { user: config.email.user, pass: config.email.pass }
-          : undefined,
-    })
-  }
+  if (!transporter) transporter = makeTransport()
   return transporter
+}
+
+// Verify SMTP credentials, then send a one-off test email. Ignores
+// DISABLE_EMAIL so you can validate a provider before turning sending on.
+export async function sendTestEmail(to) {
+  const t = makeTransport()
+  await t.verify()
+  await t.sendMail({
+    from: config.email.from,
+    replyTo: config.email.replyTo || undefined,
+    to,
+    subject: 'Test — Portugal Must Honor Its Commitments',
+    text: 'SMTP is configured correctly. This is a test message from the campaign API.',
+    html: '<p><strong>SMTP is configured correctly.</strong></p><p>This is a test message from the campaign API.</p>',
+  })
+  return { sent: true }
 }
 
 // Minimal localized copy for the double opt-in email. English is the
@@ -85,6 +106,7 @@ export async function sendConfirmationEmail({ to, type, token, locale }, log) {
 
   await getTransporter().sendMail({
     from: config.email.from,
+    replyTo: config.email.replyTo || undefined,
     to,
     subject: c.subject,
     html: renderHtml(c, url),

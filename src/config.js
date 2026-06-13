@@ -76,6 +76,7 @@ export const config = {
     from:
       process.env.EMAIL_FROM ||
       'Honor Your Commitment <no-reply@honoryourcommitment.com>',
+    replyTo: process.env.EMAIL_REPLY_TO || '',
   },
 
   rateLimit: {
