@@ -79,6 +79,18 @@ export const config = {
     replyTo: process.env.EMAIL_REPLY_TO || '',
   },
 
+  // Internal staff notifications on new submissions.
+  notify: {
+    emails: (process.env.NOTIFY_EMAILS || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    events: (process.env.NOTIFY_EVENTS || 'case,claimant')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
+  },
+
   rateLimit: {
     globalMax: parseInt(process.env.RATE_LIMIT_GLOBAL_MAX || '120', 10),
     globalWindow: process.env.RATE_LIMIT_GLOBAL_WINDOW || '1 minute',

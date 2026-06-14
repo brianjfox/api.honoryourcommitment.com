@@ -1,6 +1,20 @@
 import { verifyTurnstile } from './turnstile.js'
-import { sendConfirmationEmail } from './email.js'
+import { sendConfirmationEmail, sendStaffNotification } from './email.js'
 import { hashIp, newToken, clientIp, isHoneypotTripped } from './util.js'
+
+// A compact [label, value] summary for the staff notification email.
+function summarize(body) {
+  const name =
+    body.fullName || [body.firstName, body.lastName].filter(Boolean).join(' ')
+  const lines = []
+  if (name) lines.push(['Name', name])
+  if (body.email) lines.push(['Email', body.email])
+  if (body.country) lines.push(['Country', body.country])
+  if (body.applicationYear) lines.push(['Application year', body.applicationYear])
+  if (body.investmentType) lines.push(['Investment type', body.investmentType])
+  if (body.investmentAmount) lines.push(['Amount (EUR)', body.investmentAmount])
+  return lines
+}
 
 /* Shared pipeline for all three public submission endpoints:
    1. Honeypot — silently accept and drop obvious bots.
@@ -34,6 +48,11 @@ export async function processSubmission(req, reply, { type, email, locale, doIns
     // Email exists and is already confirmed — nothing more to do.
     return reply.code(200).send({ ok: true, status: 'already_confirmed' })
   }
+
+  // Notify staff (non-blocking — never fail the user's submission on this).
+  sendStaffNotification(type, summarize(req.body), req.log).catch((err) =>
+    req.log.warn({ err: err.message }, 'staff notification failed')
+  )
 
   await sendConfirmationEmail({ to: email, type, token, locale: locale || 'en' }, req.log)
   return reply.code(201).send({ ok: true, status: 'pending_confirmation' })

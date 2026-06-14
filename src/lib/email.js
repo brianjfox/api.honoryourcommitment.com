@@ -23,6 +23,37 @@ function getTransporter() {
   return transporter
 }
 
+const escapeHtml = (s) =>
+  String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+
+/* Notify internal staff that a new submission arrived (pending confirmation).
+   `lines` is an array of [label, value] pairs. No-op when email is disabled,
+   no recipients are configured, or this event type isn't subscribed. */
+export async function sendStaffNotification(type, lines, log) {
+  if (config.email.disabled) {
+    log?.info({ type }, 'EMAIL DISABLED — staff notification skipped')
+    return
+  }
+  if (!config.notify.emails.length || !config.notify.events.includes(type)) return
+
+  const text = lines.map(([k, v]) => `${k}: ${v}`).join('\n')
+  const htmlRows = lines
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:2px 12px 2px 0;color:#555">${escapeHtml(k)}</td>` +
+        `<td><strong>${escapeHtml(v)}</strong></td></tr>`
+    )
+    .join('')
+  await getTransporter().sendMail({
+    from: config.email.from,
+    to: config.notify.emails.join(', '),
+    replyTo: config.email.replyTo || undefined,
+    subject: `New ${type} registered — Portugal Must Honor Its Commitments`,
+    text: `A new ${type} was submitted (pending email confirmation):\n\n${text}`,
+    html: `<p>A new <strong>${escapeHtml(type)}</strong> was submitted (pending email confirmation):</p><table>${htmlRows}</table>`,
+  })
+}
+
 // Verify SMTP credentials, then send a one-off test email. Ignores
 // DISABLE_EMAIL so you can validate a provider before turning sending on.
 export async function sendTestEmail(to) {
