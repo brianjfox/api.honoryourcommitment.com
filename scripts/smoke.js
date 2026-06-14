@@ -118,15 +118,22 @@ try {
   )
   check('record marked confirmed', confirmed.rows[0].confirmed_at !== null)
 
-  // Re-using a token fails
+  // Re-using a token reports already_confirmed (not the same as invalid)
   res = await app.inject({
     method: 'GET',
     url: `/api/confirm?type=signature&token=${encodeURIComponent(token)}`,
   })
   check(
-    'reused token rejected',
-    /status=invalid_or_used/.test(res.headers.location)
+    'reused token → already_confirmed',
+    /status=already_confirmed/.test(res.headers.location)
   )
+
+  // A bogus token reports invalid
+  res = await app.inject({
+    method: 'GET',
+    url: `/api/confirm?type=signature&token=nope-this-token-does-not-exist`,
+  })
+  check('bogus token → invalid', /status=invalid\b/.test(res.headers.location))
 
   console.log('\nAll smoke checks passed.')
 } catch (err) {
