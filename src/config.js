@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import crypto from 'node:crypto'
 
 // Centralized, validated configuration. Fail fast in production if a
 // required secret is missing.
@@ -45,6 +46,8 @@ function corsOrigins(url) {
   return [...out]
 }
 
+const DB_URL = required('DATABASE_URL', 'postgres://phyc:phyc@localhost:5432/phyc')
+
 export const config = {
   env: process.env.NODE_ENV || 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -52,7 +55,7 @@ export const config = {
   host: process.env.HOST || '127.0.0.1',
   port: parseInt(process.env.PORT || '3000', 10),
 
-  databaseUrl: required('DATABASE_URL', 'postgres://phyc:phyc@localhost:5432/phyc'),
+  databaseUrl: DB_URL,
 
   frontendUrl: FRONTEND_URL,
   frontendOrigins: corsOrigins(FRONTEND_URL),
@@ -60,6 +63,13 @@ export const config = {
 
   privacyPolicyVersion: process.env.PRIVACY_POLICY_VERSION || 'unversioned',
   ipHashSalt: required('IP_HASH_SALT', 'dev-insecure-salt'),
+
+  // Stateless HMAC secret for one-click unsubscribe links. Must match the admin
+  // server, which generates the links. If unset, both services derive the same
+  // value from the shared DATABASE_URL so unsubscribe works without extra config.
+  unsubscribeSecret:
+    process.env.UNSUBSCRIBE_SECRET ||
+    crypto.createHash('sha256').update(`${DB_URL}:unsubscribe`).digest('hex'),
 
   turnstile: {
     secret: process.env.TURNSTILE_SECRET || '',
